@@ -27,9 +27,12 @@ ingredients_string = ''
 
 # If the user selects ingredients
 if ingredients_list:
-    # Loop through selected ingredients and create a string
+    ingredients_string = ''
+    
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
+        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+        sf_df=st.dataframe(data=smoothiefroot_response.json(),use_container_width=True)
 
     # Create the SQL insert statement
     my_insert_stmt = f"""
@@ -46,7 +49,6 @@ else:
     st.write("Please choose some ingredients.")
 import requests
 smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-#st.text(smoothiefroot_response.json())
 sf_df=st.dataframe(data=smoothiefroot_response.json(),use_container_width=True)
 # Add button to submit the order
 if my_insert_stmt:  # Only show the button if the insert statement is valid
