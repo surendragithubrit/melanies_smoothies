@@ -45,9 +45,9 @@ if ingredients_list:
     # Add a checkbox to mark the order as FILLED or NOT FILLED
     order_filled = st.checkbox('Mark Order as FILLED', value=False)
 
-    # Escape special characters in ingredients and name
-    ingredients_string = escape(ingredients_string)
-    name_on_order = escape(name_on_order)
+    # Sanitize the user inputs by escaping single quotes in the name and ingredients
+    name_on_order = name_on_order.replace("'", "''")  # Escaping single quotes in the name
+    ingredients_string = ingredients_string.replace("'", "''")  # Escaping single quotes in ingredients
 
     # Create the SQL insert statement with filled status
     my_insert_stmt = f"""
