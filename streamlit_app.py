@@ -2,31 +2,28 @@ import streamlit as st
 from snowflake.snowpark.functions import col
 import requests
 
-# Write directly to the app
+# Title of the app
 st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
 
-st.write(""" Choose the fruits you want in your custom Smoothie! """)
+st.write("""Choose the fruits you want in your custom Smoothie!""")
 
 # Take the name for the smoothie order
 name_on_order = st.text_input('Name on Smoothie:')
 st.write('The Name on your Smoothie will be:', name_on_order)
 
 # Get active session from Snowflake
-cnx=st.connection("snowflake")
+cnx = st.connection("snowflake")
 session = cnx.session()
 
 # Query the fruit options from Snowflake table
-my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'),col('SEARCH_ON'))
-#st.dataframe(data=my_dataframe,use_container_width=True)
-#st.stop()
+my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
 
-pd_df=my_dataframe.to_pandas()
-#st.dataframe(pd_df)
-#st.stop()
+# Convert the dataframe to pandas for easy lookup
+pd_df = my_dataframe.to_pandas()
 
 # Create a multiselect for users to choose up to 5 ingredients
 ingredients_list = st.multiselect(
-    'Choose up to 5 ingredients:', my_dataframe,max_selections=5
+    'Choose up to 5 ingredients:', my_dataframe, max_selections=5
 )
 
 # Initialize an empty string for ingredients
@@ -39,29 +36,28 @@ if ingredients_list:
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
         
-        search_on=pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        #st.write('The search value for ', fruit_chosen,' is ', search_on, '.')
-        
-        st.subheader(fruit_chosen + 'Nutrition Information')
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/"+search_on)
-        sf_df=st.dataframe(data=smoothiefroot_response.json(),use_container_width=True)
+        search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+        # Display nutritional information
+        st.subheader(fruit_chosen + ' Nutrition Information')
+        smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
+        st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
 
-    # Create the SQL insert statement
+    # Add a checkbox to mark the order as FILLED or NOT FILLED
+    order_filled = st.checkbox('Mark Order as FILLED', value=False)
+
+    # Create the SQL insert statement with filled status
     my_insert_stmt = f"""
-        INSERT INTO smoothies.public.orders(ingredients, name_on_order)
-        VALUES ('{ingredients_string}', '{name_on_order}')
+        INSERT INTO smoothies.public.orders(ingredients, name_on_order, filled)
+        VALUES ('{ingredients_string}', '{name_on_order}', {int(order_filled)})
     """
-
-    # Display the SQL statement (for debugging or review purposes)
+    # Display the SQL statement for debugging
     st.write(my_insert_stmt)
 
 else:
     # Handle the case where no ingredients are selected
     my_insert_stmt = None
     st.write("Please choose some ingredients.")
-import requests
-smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-sf_df=st.dataframe(data=smoothiefroot_response.json(),use_container_width=True)
+
 # Add button to submit the order
 if my_insert_stmt:  # Only show the button if the insert statement is valid
     time_to_insert = st.button('Submit Order')
