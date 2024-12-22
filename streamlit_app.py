@@ -45,13 +45,17 @@ if ingredients_list:
     # Add a checkbox to mark the order as FILLED or NOT FILLED
     order_filled = st.checkbox('Mark Order as FILLED', value=False)
 
+    # Escape special characters in ingredients and name
+    ingredients_string = escape(ingredients_string)
+    name_on_order = escape(name_on_order)
+
     # Create the SQL insert statement with filled status
     my_insert_stmt = f"""
         INSERT INTO smoothies.public.orders(ingredients, name_on_order, filled)
-        VALUES ('{ingredients_string}', '{name_on_order}', {int(order_filled)})
+        VALUES ('{ingredients_string}', '{name_on_order}', {'TRUE' if order_filled else 'FALSE'})
     """
-    # Display the SQL statement for debugging
-    st.write(my_insert_stmt)
+    # Log the exact SQL statement
+    st.write(f"Executing SQL: {my_insert_stmt}")
 
 else:
     # Handle the case where no ingredients are selected
@@ -63,6 +67,9 @@ if my_insert_stmt:  # Only show the button if the insert statement is valid
     time_to_insert = st.button('Submit Order')
 
     if time_to_insert:
-        # Execute the SQL insert statement when the button is pressed
-        session.sql(my_insert_stmt).collect()
-        st.success('Your Smoothie is ordered!', icon="✅")
+        try:
+            # Execute the SQL insert statement when the button is pressed
+            session.sql(my_insert_stmt).collect()
+            st.success('Your Smoothie is ordered!', icon="✅")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
