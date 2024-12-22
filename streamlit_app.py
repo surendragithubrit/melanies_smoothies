@@ -44,7 +44,9 @@ else:
     # Handle the case where no ingredients are selected
     my_insert_stmt = None
     st.write("Please choose some ingredients.")
-
+import requests
+smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+st.text(smoothiefroot_response)
 # Add button to submit the order
 if my_insert_stmt:  # Only show the button if the insert statement is valid
     time_to_insert = st.button('Submit Order')
