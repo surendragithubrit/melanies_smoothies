@@ -46,7 +46,8 @@ else:
     st.write("Please choose some ingredients.")
 import requests
 smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-st.text(smoothiefroot_response.json())
+#st.text(smoothiefroot_response.json())
+sf_df=st.dataframe(data=smoothiefroot_response.json(),use_container_width=True)
 # Add button to submit the order
 if my_insert_stmt:  # Only show the button if the insert statement is valid
     time_to_insert = st.button('Submit Order')
